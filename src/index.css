@@ -1,0 +1,45 @@
+:root {
+  --bg-darker: #050a08;
+  --bg-dark: #0a1410;
+  --teal: #4fe0c9;
+  --teal-dark: #1d7a68;
+  --parchment: #d8f3ea;
+  --hp-red: #e0524f;
+
+  --common: #cfd8dc;
+  --rare: #7c6ff0;
+  --epic: #ff4fa3;
+  --legendary: #7cffb2;
+
+  color-scheme: dark;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-darker);
+  color: var(--parchment);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100svh;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at top, #0e2620 0%, var(--bg-darker) 70%);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
