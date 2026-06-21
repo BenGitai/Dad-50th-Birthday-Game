@@ -1,4 +1,5 @@
 import type { CardDef } from "../game/types";
+import { cardMechanicTexts } from "../game/mechanicText";
 import CardIcon from "./CardIcon";
 
 function effectText(card: Extract<CardDef, { type: "spell" }>): string {
@@ -26,6 +27,8 @@ export default function CardView({ card, selected, affordable = true, onClick }:
     .filter(Boolean)
     .join(" ");
 
+  const mechanicTexts = cardMechanicTexts(card);
+
   return (
     <button type="button" className={classes} onClick={onClick}>
       <div className="card-cost">{card.cost}</div>
@@ -34,13 +37,18 @@ export default function CardView({ card, selected, affordable = true, onClick }:
         <CardIcon icon={card.icon} />
       </div>
       <div className="card-name">{card.name}</div>
-      {card.type === "spell" ? (
-        <div className="card-effect">{effectText(card)}</div>
-      ) : (
+      {card.type !== "spell" && (
         <div className="card-stats">
           <span className="stat-atk-c">{"attack" in card.stats ? card.stats.attack : 0}</span>
           <span className="stat-hp-c">{card.stats.health}</span>
         </div>
+      )}
+      {card.type === "spell" ? (
+        <div className="card-effect">{effectText(card)}</div>
+      ) : mechanicTexts.length > 0 ? (
+        <div className="card-effect">{mechanicTexts.join(" ")}</div>
+      ) : (
+        <div className="card-effect card-effect-flavor">{card.flavor}</div>
       )}
     </button>
   );

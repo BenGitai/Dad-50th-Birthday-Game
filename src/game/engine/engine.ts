@@ -14,7 +14,6 @@ import { instantiateUnits } from "./createUnit";
 export const LANE_COUNT = 3;
 export const ATTACK_INTERVAL = 1; // seconds between hits
 export const MELEE_GAP = 0.018; // lane-progress distance counted as "touching"
-export const MIN_ALLY_GAP = 0.03; // queueing distance between same-owner units
 export const NUTRIENT_REGEN_PER_SEC = 0.4;
 export const STARTING_NUTRIENTS = 4;
 export const MAX_NUTRIENTS = 10;
@@ -200,8 +199,6 @@ export class GameEngine {
 
     const playerFront = playerUnits[0];
     const enemyFront = enemyUnits[0];
-    let playerEngaged = false;
-    let enemyEngaged = false;
 
     if (playerFront && enemyFront) {
       const gap = sharedPos(enemyFront) - sharedPos(playerFront);
@@ -209,12 +206,10 @@ export class GameEngine {
       const eStats = effectiveStats(enemyFront, laneUnits);
 
       if (gap <= Math.max(pStats.range, MELEE_GAP)) {
-        playerEngaged = true;
         const defender = this.taunter(enemyUnits) ?? enemyFront;
         this.resolveAttack(playerFront, defender, dt, laneUnits);
       }
       if (gap <= Math.max(eStats.range, MELEE_GAP)) {
-        enemyEngaged = true;
         const defender = this.taunter(playerUnits) ?? playerFront;
         this.resolveAttack(enemyFront, defender, dt, laneUnits);
       }
@@ -224,8 +219,11 @@ export class GameEngine {
       if (u.currentHp > 0 && !isDormant(u)) this.tickMechanics(u, laneIndex, dt);
     }
 
-    this.advance(playerUnits, laneUnits, playerEngaged, dt);
-    this.advance(enemyUnits, laneUnits, enemyEngaged, dt);
+    // Each unit advances independently, only stopping for the nearest enemy
+    // ahead of it — same-owner units (including stationary structures) never
+    // block each other's movement.
+    this.advance(playerUnits, enemyUnits, laneUnits, dt);
+    this.advance(enemyUnits, playerUnits, laneUnits, dt);
 
     this.cleanupDeaths(laneIndex);
   }
@@ -333,35 +331,36 @@ export class GameEngine {
 
   private isBlocked(u: UnitInstance, laneIndex: number): boolean {
     const laneUnits = this.state.lanes[laneIndex].filter((x) => x.currentHp > 0 && !isDormant(x));
-    const sameOwner = laneUnits
-      .filter((x) => x.owner === u.owner)
-      .sort((a, b) => sharedPos(b) - sharedPos(a));
-    const myIndex = sameOwner.findIndex((x) => x.instanceId === u.instanceId);
-    if (myIndex === 0) {
-      const opponents = laneUnits.filter((x) => x.owner !== u.owner);
-      if (opponents.length === 0) return false;
-      const nearestGap = Math.min(...opponents.map((o) => Math.abs(sharedPos(o) - sharedPos(u))));
-      return nearestGap <= MELEE_GAP * 4;
-    }
-    return true; // queued behind an ally
+    const opponents = laneUnits.filter((x) => x.owner !== u.owner);
+    if (opponents.length === 0) return false;
+    const gap = this.nearestEnemyGap(u, opponents);
+    return gap !== null && gap <= MELEE_GAP * 4;
   }
 
-  private advance(
-    sortedUnits: UnitInstance[],
-    laneUnits: UnitInstance[],
-    frontEngaged: boolean,
-    dt: number,
-  ) {
+  /** Gap to the nearest still-ahead opposing unit, or null if the lane ahead is clear. */
+  private nearestEnemyGap(u: UnitInstance, opposing: UnitInstance[]): number | null {
+    const myPos = sharedPos(u);
+    let nearest: number | null = null;
+    for (const o of opposing) {
+      const oPos = sharedPos(o);
+      const gap = u.owner === "player" ? oPos - myPos : myPos - oPos;
+      if (gap < 0) continue; // already passed this unit
+      if (nearest === null || gap < nearest) nearest = gap;
+    }
+    return nearest;
+  }
+
+  private advance(units: UnitInstance[], opposing: UnitInstance[], laneUnits: UnitInstance[], dt: number) {
     const scored: UnitInstance[] = [];
 
-    for (let i = 0; i < sortedUnits.length; i++) {
-      const u = sortedUnits[i];
+    for (const u of units) {
       if (u.isStructure) continue;
 
-      const blockedByEnemy = i === 0 && frontEngaged;
-      const blockedByAlly = i > 0 && sharedPos(sortedUnits[i - 1]) - sharedPos(u) < MIN_ALLY_GAP;
-      if (!blockedByEnemy && !blockedByAlly) {
-        const speed = Math.max(0, effectiveStats(u, laneUnits).speed);
+      const eff = effectiveStats(u, laneUnits);
+      const gap = this.nearestEnemyGap(u, opposing);
+      const blocked = gap !== null && gap <= Math.max(eff.range, MELEE_GAP);
+      if (!blocked) {
+        const speed = Math.max(0, eff.speed);
         u.progress = Math.min(1, u.progress + speed * dt);
         if (u.progress >= 1) scored.push(u);
       }
