@@ -208,13 +208,16 @@
   color: var(--parchment);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.card-stats { display: flex; justify-content: space-between; padding: 0 8px 4px; font-size: 10px; font-weight: bold; }
+.card-stats { display: flex; justify-content: center; gap: 16px; padding: 0 8px 4px; }
 .card-effect {
   font-size: 7px; text-align: center; padding: 0 6px 6px; color: #b9e8db; line-height: 1.2;
   display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
   flex: 1;
 }
 .card-effect-flavor { color: #6fae9c; font-style: italic; }
+.stat-block { display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.stat-icon-num { font-size: 10px; font-weight: bold; }
+.stat-label { font-size: 4.5px; letter-spacing: .4px; color: #6fae9c; text-transform: uppercase; }
 .stat-atk-c { color: #ff9d6e; }
 .stat-hp-c { color: #7fe0c9; }
 
@@ -293,36 +296,42 @@
 .pool-title { font-size: 12px; color: #9fd8c8; }
 .deck-counter { font-size: 12px; font-weight: bold; color: var(--legendary); background: #0f2a23; border: 1px solid var(--teal-dark); border-radius: 12px; padding: 3px 10px; }
 
-.pool-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; padding-bottom: 12px; }
+.pool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-bottom: 12px; }
 .mini-card {
-  aspect-ratio: 3/4; border-radius: 8px;
+  aspect-ratio: 3/4; border-radius: 10px;
   background: linear-gradient(160deg,#102b24,#060f0c);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  position: relative; font-size: 16px; border: none; padding: 0; color: inherit;
+  position: relative; font-size: 30px; border: none; padding: 4px 2px; color: inherit;
 }
-.mini-card.rarity-common { border: 1.5px solid var(--common); color: var(--common); }
-.mini-card.rarity-rare { border: 1.5px solid var(--rare); color: var(--rare); }
-.mini-card.rarity-epic { border: 1.5px solid var(--epic); color: var(--epic); }
-.mini-card.rarity-legendary { border: 1.5px solid var(--legendary); color: var(--legendary); box-shadow: 0 0 8px #7CFFB266; }
+.mini-card.rarity-common { border: 2px solid var(--common); color: var(--common); }
+.mini-card.rarity-rare { border: 2px solid var(--rare); color: var(--rare); }
+.mini-card.rarity-epic { border: 2px solid var(--epic); color: var(--epic); }
+.mini-card.rarity-legendary { border: 2px solid var(--legendary); color: var(--legendary); box-shadow: 0 0 10px #7CFFB266; }
 .mini-card.in-deck::after {
-  content: '✓'; position: absolute; top: 2px; right: 3px;
-  width: 13px; height: 13px; border-radius: 50%;
+  content: '✓'; position: absolute; top: 4px; right: 5px;
+  width: 18px; height: 18px; border-radius: 50%;
   background: var(--teal); color: #04140f;
-  font-size: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold;
+  font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: bold;
 }
 .mini-card:not(.in-deck) { opacity: 0.55; }
 .mini-cost {
-  position: absolute; top: -3px; left: -3px;
-  width: 14px; height: 14px;
+  position: absolute; top: -4px; left: -4px;
+  width: 20px; height: 20px;
   background: linear-gradient(160deg,#7fffd4,#1d7a68);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  font-size: 7px; font-weight: bold; color: #04140f;
+  font-size: 10px; font-weight: bold; color: #04140f;
   display: flex; align-items: center; justify-content: center;
 }
-.mini-name { font-size: 6px; color: #b9e8db; margin-top: 2px; text-align: center; padding: 0 2px; }
+.mini-name {
+  font-size: 11px; color: var(--parchment); margin-top: 4px; text-align: center; padding: 0 3px;
+  font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+}
+.mini-stats { display: flex; justify-content: center; gap: 12px; padding-top: 3px; }
+.mini-stats .stat-icon-num { font-size: 11px; }
+.mini-stats .stat-label { font-size: 5.5px; }
 .mini-tag {
-  font-size: 5px; color: var(--teal); text-transform: uppercase; letter-spacing: .3px;
-  text-align: center; padding: 1px 3px 0; line-height: 1.2;
+  font-size: 7px; color: var(--teal); text-transform: uppercase; letter-spacing: .3px;
+  text-align: center; padding: 2px 3px 0; line-height: 1.25;
 }
 
 /* ---------- PACK OPENING REVEAL ---------- */
@@ -368,6 +377,10 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 40px; font-weight: bold; color: var(--teal-dark);
   animation: cardBackPulse 1.1s ease-in-out infinite;
+}
+.card-back-legendary {
+  border-color: var(--legendary); color: var(--legendary);
+  animation: cardBackPulse 1.1s ease-in-out infinite, legendaryFlash 1.8s ease-in-out infinite;
 }
 .reveal-card-wrap {
   width: 210px; height: 370px;

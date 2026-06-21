@@ -41,8 +41,14 @@ export default function CardView({ card, selected, affordable = true, large, onC
       <div className="card-name">{card.name}</div>
       {card.type !== "spell" && (
         <div className="card-stats">
-          <span className="stat-atk-c">{"attack" in card.stats ? card.stats.attack : 0}</span>
-          <span className="stat-hp-c">{card.stats.health}</span>
+          <div className="stat-block">
+            <span className="stat-icon-num stat-atk-c">⚔ {"attack" in card.stats ? card.stats.attack : 0}</span>
+            <span className="stat-label">ATK</span>
+          </div>
+          <div className="stat-block">
+            <span className="stat-icon-num stat-hp-c">♥ {card.stats.health}</span>
+            <span className="stat-label">HP</span>
+          </div>
         </div>
       )}
       {card.type === "spell" ? (
