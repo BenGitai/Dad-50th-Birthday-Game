@@ -78,6 +78,14 @@ export function openPack(pack: PackDef): CardDef[] {
     const candidates = pool.filter((c) => c.rarity === rarity);
     result.push(candidates.length > 0 ? pickRandom(candidates) : pickRandom(pool));
   }
+
+  // Every pack guarantees at least one legendary, regardless of pack type odds.
+  if (!result.some((c) => c.rarity === "legendary")) {
+    const legendaryPool = pool.filter((c) => c.rarity === "legendary");
+    const legendary = pickRandom(legendaryPool.length > 0 ? legendaryPool : CARDS.filter((c) => c.rarity === "legendary"));
+    result[Math.floor(Math.random() * result.length)] = legendary;
+  }
+
   return result;
 }
 

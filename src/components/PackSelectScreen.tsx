@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { CardDef } from "../game/types";
 import { MAX_DECK_SIZE, MIN_DECK_SIZE, PACKS, TOTAL_PACK_PICKS, openPack } from "../game/data/packs";
 import CardIcon from "./CardIcon";
+import CardView from "./CardView";
 import MiniCard from "./MiniCard";
-
-const REVEAL_INTERVAL_MS = 220;
 
 interface PackSelectScreenProps {
   onConfirm: (deck: string[]) => void;
@@ -14,13 +13,8 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
   const [chosenPackIds, setChosenPackIds] = useState<string[]>([]);
   const [pool, setPool] = useState<CardDef[] | null>(null);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
-  const [revealedCount, setRevealedCount] = useState(0);
-
-  useEffect(() => {
-    if (!pool || revealedCount >= pool.length) return;
-    const t = setTimeout(() => setRevealedCount((c) => Math.min(pool.length, c + 1)), REVEAL_INTERVAL_MS);
-    return () => clearTimeout(t);
-  }, [pool, revealedCount]);
+  const [revealIndex, setRevealIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
 
   const spentPicks = chosenPackIds.reduce((sum, id) => sum + (PACKS.find((p) => p.id === id)?.pickCost ?? 0), 0);
   const remainingPicks = TOTAL_PACK_PICKS - spentPicks;
@@ -42,11 +36,26 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
     });
     setPool(cards);
     setSelectedIndices(new Set());
-    setRevealedCount(0);
+    setRevealIndex(0);
+    setFlipped(false);
+  };
+
+  const advanceReveal = () => {
+    if (!pool) return;
+    if (!flipped) {
+      setFlipped(true);
+      return;
+    }
+    if (revealIndex + 1 >= pool.length) {
+      setRevealIndex(pool.length);
+    } else {
+      setRevealIndex((i) => i + 1);
+      setFlipped(false);
+    }
   };
 
   const skipReveal = () => {
-    if (pool) setRevealedCount(pool.length);
+    if (pool) setRevealIndex(pool.length);
   };
 
   const toggleCard = (idx: number) => {
@@ -83,13 +92,46 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
     return slots;
   }, [chosenPackIds]);
 
+  if (pool && revealIndex < pool.length) {
+    const card = pool[revealIndex];
+    return (
+      <div className="screen reveal-screen" onClick={advanceReveal}>
+        <div className="header">
+          <div className="title">Build Your Culture</div>
+          <div className="subtitle">{flipped ? "Tap to continue" : "Tap to reveal"}</div>
+        </div>
+        <div className="reveal-progress">
+          Card {revealIndex + 1} / {pool.length}
+        </div>
+        <div className="reveal-stage">
+          {flipped ? (
+            <div key={revealIndex} className={`reveal-card-wrap ${card.rarity === "legendary" ? "reveal-legendary" : "reveal-pop"}`}>
+              <CardView card={card} large />
+            </div>
+          ) : (
+            <div className="card-back-large">?</div>
+          )}
+        </div>
+        <button
+          type="button"
+          className="open-packs-cta reveal-skip"
+          onClick={(e) => {
+            e.stopPropagation();
+            skipReveal();
+          }}
+        >
+          Skip to Deck Builder →
+        </button>
+      </div>
+    );
+  }
+
   if (pool) {
-    const stillRevealing = revealedCount < pool.length;
     return (
       <div className="screen">
         <div className="header">
           <div className="title">Build Your Culture</div>
-          <div className="subtitle">{stillRevealing ? "Opening packs… tap to reveal faster" : "Tap cards to add them to your deck"}</div>
+          <div className="subtitle">Tap cards to add them to your deck</div>
         </div>
         <div className="divider">Pool from {chosenPackIds.length} packs · {pool.length} cards opened</div>
         <div className="pool-section">
@@ -99,16 +141,12 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
               {deckSize} / {MAX_DECK_SIZE}
             </div>
           </div>
-          <div className="pool-grid" onClick={stillRevealing ? skipReveal : undefined}>
-            {pool.map((card, i) =>
-              i < revealedCount ? (
-                <div key={i} className={`reveal-pop ${card.rarity === "legendary" ? "reveal-legendary" : ""}`}>
-                  <MiniCard card={card} inDeck={selectedIndices.has(i)} onClick={() => toggleCard(i)} />
-                </div>
-              ) : (
-                <div key={i} className="mini-card-back">?</div>
-              ),
-            )}
+          <div className="pool-grid">
+            {pool.map((card, i) => (
+              <div key={i} className="reveal-pop">
+                <MiniCard card={card} inDeck={selectedIndices.has(i)} onClick={() => toggleCard(i)} />
+              </div>
+            ))}
           </div>
         </div>
         <button type="button" className="cta" disabled={!canConfirm} onClick={confirm}>

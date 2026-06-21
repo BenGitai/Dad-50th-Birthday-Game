@@ -14,15 +14,17 @@ interface CardViewProps {
   card: CardDef;
   selected?: boolean;
   affordable?: boolean;
+  large?: boolean;
   onClick?: () => void;
 }
 
-export default function CardView({ card, selected, affordable = true, onClick }: CardViewProps) {
+export default function CardView({ card, selected, affordable = true, large, onClick }: CardViewProps) {
   const classes = [
     "card",
     `rarity-${card.rarity}`,
     selected ? "selected" : "",
     !affordable ? "unaffordable" : "",
+    large ? "card-large" : "",
   ]
     .filter(Boolean)
     .join(" ");

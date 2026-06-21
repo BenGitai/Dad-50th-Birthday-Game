@@ -218,6 +218,19 @@
 .stat-atk-c { color: #ff9d6e; }
 .stat-hp-c { color: #7fe0c9; }
 
+/* Used for the big pack-opening reveal card: full unclamped rules text, taller body. */
+.card.card-large {
+  height: auto;
+  min-height: 148px;
+  overflow: visible;
+}
+.card.card-large .card-effect {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  font-size: 7.5px;
+  padding-bottom: 10px;
+}
+
 .footer-note { text-align: center; font-size: 9px; color: #2f5b4e; padding-bottom: 4px; }
 
 /* ---------- RESULT OVERLAY ---------- */
@@ -331,11 +344,41 @@
   60% { transform: scale(1.08) rotateY(0deg); opacity: 1; }
   100% { transform: scale(1) rotateY(0deg); opacity: 1; }
 }
-.reveal-legendary { animation: cardReveal 0.32s cubic-bezier(.2,1.4,.4,1) both, legendaryFlash 0.9s ease-out 0.32s; }
+.reveal-legendary { animation: cardReveal 0.32s cubic-bezier(.2,1.4,.4,1) both, legendaryFlash 1.4s ease-out 0.32s; }
 @keyframes legendaryFlash {
   0% { filter: drop-shadow(0 0 0px var(--legendary)); }
-  30% { filter: drop-shadow(0 0 10px var(--legendary)); }
+  30% { filter: drop-shadow(0 0 22px var(--legendary)); }
   100% { filter: drop-shadow(0 0 0px var(--legendary)); }
+}
+
+/* Big tap-through MTG-Arena-style single-card reveal */
+.reveal-screen { cursor: pointer; user-select: none; }
+.reveal-progress {
+  text-align: center; font-size: 11px; color: #6fae9c;
+  letter-spacing: .5px; padding-top: 2px;
+}
+.reveal-stage {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.card-back-large {
+  width: 210px; height: 370px; border-radius: 16px;
+  background: linear-gradient(160deg,#163d33,#081512);
+  border: 2px dashed var(--teal-dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; font-weight: bold; color: var(--teal-dark);
+  animation: cardBackPulse 1.1s ease-in-out infinite;
+}
+.reveal-card-wrap {
+  width: 210px; height: 370px;
+  display: flex; align-items: center; justify-content: center;
+}
+.reveal-card-wrap .card {
+  transform: scale(2.5);
+  pointer-events: none;
+}
+.reveal-skip {
+  margin: 0 14px 18px;
 }
 
 .cta {
