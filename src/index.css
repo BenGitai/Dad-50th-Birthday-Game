@@ -40,6 +40,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
   background: radial-gradient(ellipse at top, #0e2620 0%, var(--bg-darker) 70%);
 }
 
