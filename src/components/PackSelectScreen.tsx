@@ -5,7 +5,7 @@ import CardIcon from "./CardIcon";
 import CardView from "./CardView";
 import MiniCard from "./MiniCard";
 
-type RevealStage = "commons" | "legendary";
+type RevealStage = "closed" | "commons" | "legendary";
 
 interface PackSelectScreenProps {
   onConfirm: (deck: string[]) => void;
@@ -13,11 +13,12 @@ interface PackSelectScreenProps {
 
 export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
   const [chosenPackIds, setChosenPackIds] = useState<string[]>([]);
-  const [pool, setPool] = useState<CardDef[] | null>(null);
-  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
-  const [revealStage, setRevealStage] = useState<RevealStage>("commons");
+  const [openedPacks, setOpenedPacks] = useState<CardDef[][] | null>(null);
+  const [currentPackIdx, setCurrentPackIdx] = useState(0);
+  const [revealStage, setRevealStage] = useState<RevealStage>("closed");
   const [legendaryIndex, setLegendaryIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
   const spentPicks = chosenPackIds.reduce((sum, id) => sum + (PACKS.find((p) => p.id === id)?.pickCost ?? 0), 0);
   const remainingPicks = TOTAL_PACK_PICKS - spentPicks;
@@ -33,34 +34,24 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
   };
 
   const openChosenPacks = () => {
-    const cards = chosenPackIds.flatMap((id) => {
-      const pack = PACKS.find((p) => p.id === id)!;
-      return openPack(pack);
-    });
-    setPool(cards);
+    const opened = chosenPackIds.map((id) => openPack(PACKS.find((p) => p.id === id)!));
+    setOpenedPacks(opened);
+    setCurrentPackIdx(0);
+    setRevealStage("closed");
+    setLegendaryIndex(0);
+    setFlipped(false);
     setSelectedIndices(new Set());
-    setRevealStage("commons");
+  };
+
+  const pool = useMemo(() => openedPacks?.flat() ?? null, [openedPacks]);
+  const allPacksOpened = openedPacks !== null && currentPackIdx >= chosenPackIds.length;
+
+  const advanceToNextPack = () => {
+    setCurrentPackIdx((i) => i + 1);
+    setRevealStage("closed");
     setLegendaryIndex(0);
     setFlipped(false);
   };
-
-  const legendaryEntries = useMemo(() => pool?.filter((c) => c.rarity === "legendary") ?? [], [pool]);
-  const commonEntries = useMemo(() => pool?.filter((c) => c.rarity !== "legendary") ?? [], [pool]);
-
-  const advanceLegendaryReveal = () => {
-    if (!flipped) {
-      setFlipped(true);
-      return;
-    }
-    if (legendaryIndex + 1 >= legendaryEntries.length) {
-      setLegendaryIndex(legendaryEntries.length);
-    } else {
-      setLegendaryIndex((i) => i + 1);
-      setFlipped(false);
-    }
-  };
-
-  const skipLegendaryReveal = () => setLegendaryIndex(legendaryEntries.length);
 
   const toggleCard = (idx: number) => {
     setSelectedIndices((prev) => {
@@ -96,68 +87,119 @@ export default function PackSelectScreen({ onConfirm }: PackSelectScreenProps) {
     return slots;
   }, [chosenPackIds]);
 
-  if (pool && revealStage === "commons") {
-    return (
-      <div className="screen">
-        <div className="header">
-          <div className="title">Build Your Culture</div>
-          <div className="subtitle">{commonEntries.length} cards opened</div>
-        </div>
-        <div className="pool-section">
-          <div className="pool-grid commons-reveal-grid">
-            {commonEntries.map((card, i) => (
-              <div key={i} className="reveal-pop" style={{ animationDelay: `${i * 40}ms` }}>
-                <MiniCard card={card} inDeck={false} onClick={() => {}} />
-              </div>
-            ))}
-          </div>
-        </div>
-        <button type="button" className="cta" onClick={() => setRevealStage("legendary")}>
-          {legendaryEntries.length > 0
-            ? `Reveal ${legendaryEntries.length > 1 ? "Legendaries" : "Legendary"} →`
-            : "Continue →"}
-        </button>
-      </div>
-    );
-  }
+  if (openedPacks && !allPacksOpened) {
+    const packId = chosenPackIds[currentPackIdx];
+    const packDef = PACKS.find((p) => p.id === packId)!;
+    const cards = openedPacks[currentPackIdx];
+    const legendaryEntries = cards.filter((c) => c.rarity === "legendary");
+    const commonEntries = cards.filter((c) => c.rarity !== "legendary");
+    const isLastPack = currentPackIdx + 1 >= chosenPackIds.length;
 
-  if (pool && revealStage === "legendary" && legendaryIndex < legendaryEntries.length) {
-    const card = legendaryEntries[legendaryIndex];
-    return (
-      <div className="screen reveal-screen" onClick={advanceLegendaryReveal}>
-        <div className="header">
-          <div className="title">Build Your Culture</div>
-          <div className="subtitle">{flipped ? "Tap to continue" : "Tap to reveal your legendary"}</div>
-        </div>
-        {legendaryEntries.length > 1 && (
-          <div className="reveal-progress">
-            Legendary {legendaryIndex + 1} / {legendaryEntries.length}
-          </div>
-        )}
-        <div className="reveal-stage">
-          {flipped ? (
-            <div key={legendaryIndex} className="reveal-card-wrap reveal-legendary">
-              <CardView card={card} large />
+    if (revealStage === "closed") {
+      return (
+        <div className="screen reveal-screen" onClick={() => setRevealStage("commons")}>
+          <div className="header">
+            <div className="title">Build Your Culture</div>
+            <div className="subtitle">
+              Pack {currentPackIdx + 1} / {chosenPackIds.length}
             </div>
-          ) : (
-            <div className="card-back-large card-back-legendary">?</div>
-          )}
+          </div>
+          <div className="reveal-stage">
+            <div className="pack-intro-card">
+              <div className="pack-intro-icon">
+                <CardIcon icon={packDef.icon} />
+              </div>
+              <div className="pack-intro-name">{packDef.name}</div>
+              <div className="pack-intro-tap">Tap to Open</div>
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          className="open-packs-cta reveal-skip"
-          onClick={(e) => {
-            e.stopPropagation();
-            skipLegendaryReveal();
-          }}
-        >
-          Skip to Deck Builder →
-        </button>
-      </div>
-    );
+      );
+    }
+
+    if (revealStage === "commons") {
+      return (
+        <div className="screen">
+          <div className="header">
+            <div className="title">{packDef.name}</div>
+            <div className="subtitle">{commonEntries.length} cards opened</div>
+          </div>
+          <div className="pool-section">
+            <div className="pool-grid commons-reveal-grid">
+              {commonEntries.map((card, i) => (
+                <div key={i} className="reveal-pop" style={{ animationDelay: `${i * 40}ms` }}>
+                  <MiniCard card={card} inDeck={false} onClick={() => {}} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="cta"
+            onClick={() => (legendaryEntries.length > 0 ? setRevealStage("legendary") : advanceToNextPack())}
+          >
+            {legendaryEntries.length > 0
+              ? `Reveal ${legendaryEntries.length > 1 ? "Legendaries" : "Legendary"} →`
+              : isLastPack
+                ? "Continue →"
+                : "Next Pack →"}
+          </button>
+        </div>
+      );
+    }
+
+    // revealStage === "legendary"
+    if (legendaryIndex < legendaryEntries.length) {
+      const card = legendaryEntries[legendaryIndex];
+      const advanceLegendaryReveal = () => {
+        if (!flipped) {
+          setFlipped(true);
+          return;
+        }
+        if (legendaryIndex + 1 >= legendaryEntries.length) {
+          advanceToNextPack();
+        } else {
+          setLegendaryIndex((i) => i + 1);
+          setFlipped(false);
+        }
+      };
+
+      return (
+        <div className="screen reveal-screen" onClick={advanceLegendaryReveal}>
+          <div className="header">
+            <div className="title">{packDef.name}</div>
+            <div className="subtitle">{flipped ? "Tap to continue" : "Tap to reveal your legendary"}</div>
+          </div>
+          {legendaryEntries.length > 1 && (
+            <div className="reveal-progress">
+              Legendary {legendaryIndex + 1} / {legendaryEntries.length}
+            </div>
+          )}
+          <div className="reveal-stage">
+            {flipped ? (
+              <div key={legendaryIndex} className="reveal-card-wrap reveal-legendary">
+                <CardView card={card} large />
+              </div>
+            ) : (
+              <div className="card-back-large card-back-legendary">?</div>
+            )}
+          </div>
+          <button
+            type="button"
+            className="open-packs-cta reveal-skip"
+            onClick={(e) => {
+              e.stopPropagation();
+              advanceToNextPack();
+            }}
+          >
+            {isLastPack ? "Skip to Deck Builder →" : "Skip to Next Pack →"}
+          </button>
+        </div>
+      );
+    }
   }
 
-  if (pool) {
+  if (pool && allPacksOpened) {
     return (
       <div className="screen">
         <div className="header">

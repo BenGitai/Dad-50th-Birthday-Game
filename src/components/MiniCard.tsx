@@ -1,5 +1,5 @@
 import type { CardDef } from "../game/types";
-import { cardMechanicLabels } from "../game/mechanicText";
+import { cardRulesText } from "../game/mechanicText";
 import CardIcon from "./CardIcon";
 
 interface MiniCardProps {
@@ -10,11 +10,13 @@ interface MiniCardProps {
 
 export default function MiniCard({ card, inDeck, onClick }: MiniCardProps) {
   const classes = ["mini-card", `rarity-${card.rarity}`, inDeck ? "in-deck" : ""].filter(Boolean).join(" ");
-  const labels = cardMechanicLabels(card);
+  const rulesText = cardRulesText(card);
   return (
     <button type="button" className={classes} onClick={onClick}>
       <div className="mini-cost">{card.cost}</div>
-      <CardIcon icon={card.icon} />
+      <div className="mini-icon">
+        <CardIcon icon={card.icon} />
+      </div>
       <div className="mini-name">{card.name}</div>
       {card.type !== "spell" && (
         <div className="mini-stats">
@@ -28,7 +30,11 @@ export default function MiniCard({ card, inDeck, onClick }: MiniCardProps) {
           </div>
         </div>
       )}
-      {labels.length > 0 && <div className="mini-tag">{labels.join(" · ")}</div>}
+      {rulesText ? (
+        <div className="mini-rules">{rulesText}</div>
+      ) : (
+        <div className="mini-rules mini-rules-flavor">{card.flavor}</div>
+      )}
     </button>
   );
 }

@@ -65,3 +65,18 @@ export function cardMechanicLabels(card: CardDef): string[] {
   if (card.type === "spell") return [];
   return card.mechanics.map(mechanicLabel);
 }
+
+/** Full plain-English explanation of a spell card's effect. */
+export function spellEffectText(card: Extract<CardDef, { type: "spell" }>): string {
+  const e = card.effect;
+  if (e.kind === "damage") return `Deal ${e.amount} dmg to ${e.target === "lane" ? "all enemies in a channel" : "the front enemy"}`;
+  if (e.kind === "heal") return `Heal ${e.amount} hp to ${e.target === "lane" ? "your channel" : "your front unit"}`;
+  if (e.kind === "buff") return `+${e.amount} ${e.stat} to your channel for ${e.durationSeconds}s`;
+  return `Slow enemies in the channel for ${e.durationSeconds}s`;
+}
+
+/** Full rules text for any card — spell effect or creature/structure mechanics. */
+export function cardRulesText(card: CardDef): string {
+  if (card.type === "spell") return spellEffectText(card);
+  return cardMechanicTexts(card).join(" ");
+}
