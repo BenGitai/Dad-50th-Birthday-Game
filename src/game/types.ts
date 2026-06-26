@@ -3,7 +3,7 @@
 // added by writing card data, without touching the simulation engine for
 // every new combination.
 
-export type Rarity = "common" | "rare" | "epic" | "legendary";
+export type Rarity = "common" | "uncommon" | "rare" | "legendary";
 
 export type CardType = "creature" | "spell" | "structure";
 
@@ -47,7 +47,13 @@ export type MechanicConfig =
   /** Invulnerable for a duration, then becomes a stronger form. */
   | { kind: "dormant"; durationSeconds: number; hatchStats: Partial<UnitStats> }
   /** Copies one buff/mechanic from the nearest ally on play. */
-  | { kind: "stealBuff" };
+  | { kind: "stealBuff" }
+  /** Heals this unit for hpPerSec every second. */
+  | { kind: "regenerate"; hpPerSec: number }
+  /** Heals attacker for a fraction of damage dealt. */
+  | { kind: "leech"; fraction: number }
+  /** Gains bonus attack when below 50% HP. */
+  | { kind: "berserk"; bonusAttack: number };
 
 export type MechanicKind = MechanicConfig["kind"];
 
@@ -94,6 +100,17 @@ export interface PackDef {
   /** how many of the 3 pack picks this consumes (legendary pack costs 2) */
   pickCost: number;
   cardCount: number;
+}
+
+// ---------- Visual events (cleared each engine tick) ----------
+
+export interface VisualEvent {
+  id: number;
+  kind: "rangedShot";
+  laneIndex: number;
+  fromOwner: Owner;
+  /** Shared-axis position (0=player base, 1=enemy base) of the attacker. */
+  fromProgress: number;
 }
 
 // ---------- Live simulation state ----------
@@ -151,4 +168,6 @@ export interface GameState {
   lanes: LaneEntities[]; // length 3, units from both owners share the array
   player: PlayerState;
   enemy: PlayerState;
+  /** Visual animation events emitted during the most recent engine tick. */
+  visualEvents: VisualEvent[];
 }

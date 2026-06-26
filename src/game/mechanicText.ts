@@ -27,6 +27,12 @@ export function mechanicText(config: MechanicConfig): string {
       return `Invulnerable for ${config.durationSeconds}s, then hatches into a stronger form.`;
     case "stealBuff":
       return "On deploy, copies a buff from its nearest ally.";
+    case "regenerate":
+      return `Regenerates ${config.hpPerSec} HP per second.`;
+    case "leech":
+      return `Heals for ${Math.round(config.fraction * 100)}% of damage dealt.`;
+    case "berserk":
+      return `Below 50% HP: gains +${config.bonusAttack} attack.`;
   }
 }
 
@@ -53,6 +59,12 @@ export function mechanicLabel(config: MechanicConfig): string {
       return "Dormant";
     case "stealBuff":
       return "Steals Buff";
+    case "regenerate":
+      return `Regen ${config.hpPerSec}/s`;
+    case "leech":
+      return `Leech ${Math.round(config.fraction * 100)}%`;
+    case "berserk":
+      return `Berserk +${config.bonusAttack}`;
   }
 }
 

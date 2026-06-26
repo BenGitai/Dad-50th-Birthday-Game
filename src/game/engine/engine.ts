@@ -52,6 +52,7 @@ export function createInitialState(playerDeck: string[], enemyDeck: string[]): G
     lanes: Array.from({ length: LANE_COUNT }, () => []),
     player: makePlayerState(playerDeck),
     enemy: makePlayerState(enemyDeck),
+    visualEvents: [],
   };
 }
 
@@ -65,7 +66,7 @@ function isDormant(unit: UnitInstance): boolean {
   return !!ms && (ms.dormantRemaining ?? Infinity) > 0;
 }
 
-/** Computes a unit's live stats: base + temporary buffs + lane auras from allies. */
+/** Computes a unit's live stats: base + temporary buffs + lane auras + berserk. */
 function effectiveStats(unit: UnitInstance, laneUnits: UnitInstance[]): UnitStats {
   const stats: UnitStats = { ...unit.baseStats };
 
@@ -83,11 +84,18 @@ function effectiveStats(unit: UnitInstance, laneUnits: UnitInstance[]): UnitStat
     }
   }
 
+  for (const ms of unit.mechanicStates) {
+    if (ms.config.kind === "berserk" && unit.currentHp < unit.baseStats.health * 0.5) {
+      stats.attack += ms.config.bonusAttack;
+    }
+  }
+
   return stats;
 }
 
 export class GameEngine {
   state: GameState;
+  private _visualEventId = 0;
 
   constructor(playerDeck: string[], enemyDeck: string[]) {
     this.state = createInitialState(playerDeck, enemyDeck);
@@ -171,6 +179,7 @@ export class GameEngine {
 
   tick(dt: number) {
     if (this.state.status !== "playing") return;
+    this.state.visualEvents = [];
     this.state.elapsedSeconds += dt;
 
     this.regenNutrients(dt);
@@ -212,11 +221,11 @@ export class GameEngine {
 
       if (gap <= Math.max(pStats.range, MELEE_GAP)) {
         const defender = this.taunter(enemyUnits) ?? enemyFront;
-        this.resolveAttack(playerFront, defender, dt, laneUnits);
+        this.resolveAttack(playerFront, defender, dt, laneUnits, laneIndex);
       }
       if (gap <= Math.max(eStats.range, MELEE_GAP)) {
         const defender = this.taunter(playerUnits) ?? playerFront;
-        this.resolveAttack(enemyFront, defender, dt, laneUnits);
+        this.resolveAttack(enemyFront, defender, dt, laneUnits, laneIndex);
       }
     }
 
@@ -259,11 +268,35 @@ export class GameEngine {
     return sortedUnits.find((u) => u.mechanicStates.some((m) => m.config.kind === "tank"));
   }
 
-  private resolveAttack(attacker: UnitInstance, defender: UnitInstance, dt: number, laneUnits: UnitInstance[]) {
+  private resolveAttack(
+    attacker: UnitInstance,
+    defender: UnitInstance,
+    dt: number,
+    laneUnits: UnitInstance[],
+    laneIndex: number,
+  ) {
     attacker.attackCooldown -= dt;
     if (attacker.attackCooldown > 0) return;
     const eff = effectiveStats(attacker, laneUnits);
-    this.applyDamage(defender, eff.attack);
+
+    if (eff.range > 0) {
+      this.state.visualEvents.push({
+        id: ++this._visualEventId,
+        kind: "rangedShot",
+        laneIndex,
+        fromOwner: attacker.owner,
+        fromProgress: sharedPos(attacker),
+      });
+    }
+
+    const damage = eff.attack;
+    this.applyDamage(defender, damage);
+
+    const leech = attacker.mechanicStates.find((m) => m.config.kind === "leech");
+    if (leech && leech.config.kind === "leech") {
+      attacker.currentHp = Math.min(eff.health, attacker.currentHp + Math.round(damage * leech.config.fraction));
+    }
+
     attacker.attackCooldown = ATTACK_INTERVAL;
   }
 
@@ -296,6 +329,8 @@ export class GameEngine {
         }
       } else if (ms.config.kind === "laneJump") {
         this.tickLaneJump(u, ms, laneIndex, dt);
+      } else if (ms.config.kind === "regenerate") {
+        u.currentHp = Math.min(u.baseStats.health, u.currentHp + ms.config.hpPerSec * dt);
       }
     }
   }

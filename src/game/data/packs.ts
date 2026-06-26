@@ -41,10 +41,10 @@ export const PACKS: PackDef[] = [
 ];
 
 const RARITY_WEIGHTS: Record<PackDef["type"], Partial<Record<Rarity, number>>> = {
-  general: { common: 55, rare: 30, epic: 12, legendary: 3 },
-  creature: { common: 55, rare: 30, epic: 12, legendary: 3 },
-  spell: { common: 55, rare: 30, epic: 12, legendary: 3 },
-  legendary: { common: 0, rare: 35, epic: 40, legendary: 25 },
+  general: { common: 45, uncommon: 30, rare: 20, legendary: 5 },
+  creature: { common: 45, uncommon: 30, rare: 20, legendary: 5 },
+  spell: { common: 45, uncommon: 30, rare: 20, legendary: 5 },
+  legendary: { common: 0, uncommon: 25, rare: 45, legendary: 30 },
 };
 
 function weightedRarity(packType: PackDef["type"]): Rarity {

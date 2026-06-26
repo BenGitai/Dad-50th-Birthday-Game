@@ -7,9 +7,10 @@
   --hp-red: #e0524f;
 
   --common: #cfd8dc;
-  --rare: #7c6ff0;
+  --uncommon: #4ade80;
+  --rare: #60a5fa;
   --epic: #ff4fa3;
-  --legendary: #7cffb2;
+  --legendary: #ffd700;
 
   color-scheme: dark;
   font-family: "Trebuchet MS", "Segoe UI", sans-serif;

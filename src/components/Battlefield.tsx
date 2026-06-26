@@ -1,4 +1,4 @@
-import type { GameState } from "../game/types";
+import type { GameState, VisualEvent } from "../game/types";
 import Lane from "./Lane";
 
 interface SpellFlash {
@@ -15,6 +15,7 @@ interface BattlefieldProps {
 }
 
 export default function Battlefield({ state, selectingLane, spellFlashes, onLaneSelect }: BattlefieldProps) {
+  const visualEvents: VisualEvent[] = state.visualEvents ?? [];
   return (
     <div className="battlefield">
       {state.lanes.map((units, i) => {
@@ -27,6 +28,7 @@ export default function Battlefield({ state, selectingLane, spellFlashes, onLane
             droppable={selectingLane}
             spellFlash={flash?.kind ?? null}
             flashId={flash?.id ?? null}
+            visualEvents={visualEvents}
             onSelect={() => onLaneSelect(i)}
           />
         );

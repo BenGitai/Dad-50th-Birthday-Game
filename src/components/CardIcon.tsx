@@ -188,6 +188,42 @@ function ScissorsCellIcon() {
   );
 }
 
+/** Wavy spiral bacterium (spirochaete: Treponema, Borrelia). */
+function SpiralIcon() {
+  return (
+    <Svg>
+      <path
+        d="M4 12 C5 8, 8 7, 10 10 C12 13, 15 14, 17 11 C19 8, 21 8, 21 10"
+        stroke={STROKE}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+/** Three cocci in a chain (Streptococcus). */
+function ChainCocciIcon() {
+  return (
+    <Svg>
+      <circle cx="6" cy="12" r="3.6" fill={STROKE} />
+      <circle cx="12" cy="12" r="3.6" fill={STROKE} />
+      <circle cx="18" cy="12" r="3.6" fill={STROKE} />
+    </Svg>
+  );
+}
+
+/** Large cell with a small bud (replicating / budding organism). */
+function BuddingCellIcon() {
+  return (
+    <Svg>
+      <circle cx="11" cy="13" r="6" fill={STROKE} />
+      <circle cx="18" cy="8" r="3.2" fill={STROKE} opacity="0.85" />
+    </Svg>
+  );
+}
+
 const SHAPES: Record<string, () => ReactElement> = {
   phage: PhageIcon,
   rod: RodIcon,
@@ -205,6 +241,9 @@ const SHAPES: Record<string, () => ReactElement> = {
   dish: DishIcon,
   matrix: MatrixIcon,
   "scissors-cell": ScissorsCellIcon,
+  spiral: SpiralIcon,
+  "chain-cocci": ChainCocciIcon,
+  "budding-cell": BuddingCellIcon,
 };
 
 export default function CardIcon({ icon }: { icon: string }) {
