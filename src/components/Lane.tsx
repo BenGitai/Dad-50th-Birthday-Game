@@ -7,10 +7,12 @@ interface LaneProps {
   index: number;
   units: UnitInstance[];
   droppable: boolean;
+  spellFlash: "damage" | "heal" | "buff" | "slow" | null;
+  flashId: number | null;
   onSelect: () => void;
 }
 
-export default function Lane({ index, units, droppable, onSelect }: LaneProps) {
+export default function Lane({ index, units, droppable, spellFlash, flashId, onSelect }: LaneProps) {
   return (
     <div className={`lane ${droppable ? "lane-droppable" : ""}`} onClick={onSelect}>
       <div className="lane-hole lane-hole-top" />
@@ -19,6 +21,12 @@ export default function Lane({ index, units, droppable, onSelect }: LaneProps) {
         <UnitToken key={u.instanceId} unit={u} />
       ))}
       <div className="lane-hole lane-hole-bottom" />
+      {spellFlash && (
+        <div
+          key={flashId}
+          className={`spell-flash spell-flash-${spellFlash}`}
+        />
+      )}
     </div>
   );
 }

@@ -14,7 +14,10 @@ import { instantiateUnits } from "./createUnit";
 export const LANE_COUNT = 3;
 export const ATTACK_INTERVAL = 1; // seconds between hits
 export const MELEE_GAP = 0.018; // lane-progress distance counted as "touching"
-export const NUTRIENT_REGEN_PER_SEC = 0.4;
+export const NUTRIENT_REGEN_BASE = 0.5;  // starting regen rate
+export const NUTRIENT_RAMP_INTERVAL = 20; // seconds between ramp steps
+export const NUTRIENT_RAMP_AMOUNT = 0.12; // added per ramp step
+export const NUTRIENT_REGEN_MAX = 1.4;    // regen cap (~2min in)
 export const STARTING_NUTRIENTS = 4;
 export const MAX_NUTRIENTS = 10;
 export const STARTING_BASE_HP = 30;
@@ -178,9 +181,11 @@ export class GameEngine {
   }
 
   private regenNutrients(dt: number) {
+    const rampSteps = Math.floor(this.state.elapsedSeconds / NUTRIENT_RAMP_INTERVAL);
+    const rate = Math.min(NUTRIENT_REGEN_MAX, NUTRIENT_REGEN_BASE + rampSteps * NUTRIENT_RAMP_AMOUNT);
     for (const owner of ["player", "enemy"] as Owner[]) {
       const p = this.state[owner];
-      p.nutrients = Math.min(p.maxNutrients, p.nutrients + NUTRIENT_REGEN_PER_SEC * dt);
+      p.nutrients = Math.min(p.maxNutrients, p.nutrients + rate * dt);
     }
   }
 

@@ -205,9 +205,12 @@ export const CARDS: CardDef[] = [
     rarity: "legendary",
     cost: 6,
     icon: "phage",
-    flavor: "The iconic lunar-lander of the microbial world.",
-    stats: { attack: 7, health: 5, speed: 0.13, range: 0 },
-    mechanics: [{ kind: "burstOnDeath", damage: 6 }],
+    flavor: "Hunts bacteria across channels, then detonates in a catastrophic burst.",
+    stats: { attack: 9, health: 7, speed: 0.22, range: 0 },
+    mechanics: [
+      { kind: "laneJump", trigger: "blocked" },
+      { kind: "burstOnDeath", damage: 12 },
+    ],
   },
   {
     id: "binary-fission-queen",
@@ -216,10 +219,10 @@ export const CARDS: CardDef[] = [
     rarity: "legendary",
     cost: 5,
     icon: "dividing-rod",
-    flavor: "Placeholder legendary — reserved for a personal touch.",
-    stats: { attack: 3, health: 6, speed: 0.1, range: 0 },
+    flavor: "Every defeat is just the beginning — it keeps dividing.",
+    stats: { attack: 4, health: 10, speed: 0.1, range: 0 },
     mechanics: [
-      { kind: "replicate", intervalSeconds: 6, hpFraction: 0.5, maxCopies: 2 },
+      { kind: "replicate", intervalSeconds: 4, hpFraction: 0.85, maxCopies: 5 },
     ],
   },
   {
@@ -229,9 +232,12 @@ export const CARDS: CardDef[] = [
     rarity: "legendary",
     cost: 6,
     icon: "scissors-cell",
-    flavor: "Edits the battlefield in its favor.",
-    stats: { attack: 4, health: 7, speed: 0.1, range: 0.2 },
-    mechanics: [{ kind: "aura", buff: { stat: "attack", amount: 1 }, perAlly: true }],
+    flavor: "Rewrites the rules of the channel — its very presence makes allies lethal.",
+    stats: { attack: 5, health: 14, speed: 0.07, range: 0.25 },
+    mechanics: [
+      { kind: "tank" },
+      { kind: "aura", buff: { stat: "attack", amount: 2 }, perAlly: true },
+    ],
   },
 ];
 

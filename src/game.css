@@ -78,6 +78,20 @@
 .lane-hole-top { top: -1px; }
 .lane-hole-bottom { bottom: -1px; }
 
+.spell-flash {
+  position: absolute; inset: 0; pointer-events: none; z-index: 10; border-radius: inherit;
+  animation: spellFlash 0.85s ease-out forwards;
+}
+.spell-flash-damage { background: radial-gradient(ellipse at 50% 50%, rgba(255,60,60,0.6) 0%, rgba(255,60,60,0) 70%); }
+.spell-flash-heal   { background: radial-gradient(ellipse at 50% 50%, rgba(60,255,140,0.55) 0%, rgba(60,255,140,0) 70%); }
+.spell-flash-buff   { background: radial-gradient(ellipse at 50% 50%, rgba(255,200,60,0.55) 0%, rgba(255,200,60,0) 70%); }
+.spell-flash-slow   { background: radial-gradient(ellipse at 50% 50%, rgba(100,180,255,0.55) 0%, rgba(100,180,255,0) 70%); }
+@keyframes spellFlash {
+  0%   { opacity: 1; transform: scale(0.5); }
+  30%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
 .unit-wrap {
   position: absolute;
   left: 50%;
