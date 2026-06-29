@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./game.css";
-import { MAX_DECK_SIZE, buildRandomDeck } from "./game/data/packs";
+import { MAX_DECK_SIZE } from "./game/data/packs";
+import { buildCurvedDeck } from "./game/engine/ai";
 import BattleScreen from "./components/BattleScreen";
 import PackSelectScreen from "./components/PackSelectScreen";
 
@@ -27,7 +28,7 @@ export default function App() {
 
   const handleDeckConfirmed = (deck: string[]) => {
     setPlayerDeck(deck);
-    setEnemyDeck(buildRandomDeck(MAX_DECK_SIZE));
+    setEnemyDeck(buildCurvedDeck(MAX_DECK_SIZE));
     setScreen("battle");
   };
 

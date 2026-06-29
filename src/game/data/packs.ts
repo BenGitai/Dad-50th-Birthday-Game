@@ -79,8 +79,10 @@ export function openPack(pack: PackDef): CardDef[] {
     result.push(candidates.length > 0 ? pickRandom(candidates) : pickRandom(pool));
   }
 
-  // Every pack guarantees at least one legendary, regardless of pack type odds.
-  if (!result.some((c) => c.rarity === "legendary")) {
+  // Legendary packs always guarantee at least one legendary.
+  // Standard packs have a 50% chance of a guaranteed legendary.
+  const guaranteeChance = pack.type === "legendary" ? 1.0 : 0.5;
+  if (!result.some((c) => c.rarity === "legendary") && Math.random() < guaranteeChance) {
     const legendaryPool = pool.filter((c) => c.rarity === "legendary");
     const legendary = pickRandom(legendaryPool.length > 0 ? legendaryPool : CARDS.filter((c) => c.rarity === "legendary"));
     result[Math.floor(Math.random() * result.length)] = legendary;
